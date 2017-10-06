@@ -55,11 +55,14 @@ bool DepfileParser::Parse(string* content, string* err) {
       re2c:indent:string = "  ";
 
       nul = "\000";
-      escape = [ \\#*[|];
+      escape = [ \t#];
 
-      '\\' escape {
-        // De-escape backslashed character.
-        *out++ = yych;
+      '\\'+ escape {
+        // De-escape the last character, but preserve other leading slashes.
+        const char *remaining = start + 1;
+        int len = (int)(in - remaining);
+        memmove(out, remaining, len);
+        out += len;
         continue;
       }
       '$$' {
@@ -67,13 +70,7 @@ bool DepfileParser::Parse(string* content, string* err) {
         *out++ = '$';
         continue;
       }
-      '\\' [^\000\r\n] {
-        // Let backslash before other characters through verbatim.
-        *out++ = '\\';
-        *out++ = yych;
-        continue;
-      }
-      [a-zA-Z0-9+,/_:.~()}{@=!\x80-\xFF-]+ {
+      '\\'+ [^\000\r\n] | [a-zA-Z0-9+,/_:.~()}{@=!\x80-\xFF-]+ {
         // Got a span of plain text.
         int len = (int)(in - start);
         // Need to shift it over if we're overwriting backslashes.

@@ -101,6 +101,18 @@ TEST_F(DepfileParserTest, Spaces) {
             parser_.ins_[2].AsString());
 }
 
+TEST_F(DepfileParserTest, SlashesSpaces) {
+  // Slashes are unescaped, except when they follow whitespace or a hash sign.
+  string err;
+  EXPECT_TRUE(Parse(
+"some\\\\ slash\\\\es:",
+      &err));
+  ASSERT_EQ("", err);
+  EXPECT_EQ("some\\ slash\\\\es",
+            parser_.out_.AsString());
+  ASSERT_EQ(0u, parser_.ins_.size());
+}
+
 TEST_F(DepfileParserTest, Escapes) {
   // Put backslashes before a variety of characters, see which ones make
   // it through.
@@ -109,7 +121,7 @@ TEST_F(DepfileParserTest, Escapes) {
 "\\!\\@\\#$$\\%\\^\\&\\\\:",
       &err));
   ASSERT_EQ("", err);
-  EXPECT_EQ("\\!\\@#$\\%\\^\\&\\",
+  EXPECT_EQ("\\!\\@#$\\%\\^\\&\\\\",
             parser_.out_.AsString());
   ASSERT_EQ(0u, parser_.ins_.size());
 }
