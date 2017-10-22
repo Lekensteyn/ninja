@@ -101,6 +101,33 @@ TEST_F(DepfileParserTest, Spaces) {
             parser_.ins_[2].AsString());
 }
 
+TEST_F(DepfileParserTest, Comments) {
+  // Everything after the comment sign should be ignored
+  string err;
+  EXPECT_TRUE(Parse("out: foo#bar thing", &err));
+  ASSERT_EQ("", err);
+  EXPECT_EQ("out", parser_.out_.AsString());
+  ASSERT_EQ(1u, parser_.ins_.size());
+  EXPECT_EQ("foo",
+            parser_.ins_[0].AsString());
+}
+
+TEST_F(DepfileParserTest, LineComments) {
+  // Comments on separate lines should also be ignored
+  string err;
+  EXPECT_TRUE(Parse(
+"#===Dependents for document.tex:\n"
+"document.pdf :\\\n"
+"    document.tex\n"
+"#===End dependents for document.tex:\n",
+        &err));
+  ASSERT_EQ("", err);
+  EXPECT_EQ("document.pdf", parser_.out_.AsString());
+  ASSERT_EQ(1u, parser_.ins_.size());
+  EXPECT_EQ("document.tex",
+            parser_.ins_[0].AsString());
+}
+
 TEST_F(DepfileParserTest, SlashesSpaces) {
   // Slashes are unescaped, except when they follow whitespace or a hash sign.
   string err;

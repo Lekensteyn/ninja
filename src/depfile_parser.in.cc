@@ -82,6 +82,10 @@ bool DepfileParser::Parse(string* content, string* err) {
       nul {
         break;
       }
+      '#' [^\000\r\n]* {
+        // comments eat the whole line
+        break;
+      }
       [^] {
         // For any other character (e.g. whitespace), swallow it here,
         // allowing the outer logic to loop around again.
